@@ -1,0 +1,1656 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Aegis EW Command Backend",
+    "description": "Versioned backend contract for the hybrid Aegis EW Command application.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulation/state": {
+      "get": {
+        "tags": [
+          "simulation"
+        ],
+        "summary": "Get Simulation State",
+        "operationId": "get_simulation_state_simulation_state_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationState"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spectrum": {
+      "get": {
+        "tags": [
+          "spectrum"
+        ],
+        "summary": "Get Spectrum",
+        "operationId": "get_spectrum_spectrum_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SpectrumSample"
+                  },
+                  "type": "array",
+                  "title": "Response Get Spectrum Spectrum Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scheduler/decision": {
+      "get": {
+        "tags": [
+          "scheduler"
+        ],
+        "summary": "Get Scheduler Decision",
+        "operationId": "get_scheduler_decision_scheduler_decision_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanDecision"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "metrics"
+        ],
+        "summary": "Get Metrics",
+        "operationId": "get_metrics_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationalMetrics"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/history": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Get Paginated Decision History",
+        "operationId": "get_history_history_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "band",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ScanDecision"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "limit": {
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "limit",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/history/export": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "Export Decision History",
+        "operationId": "export_history_history_export_get",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv",
+                "json"
+              ],
+              "default": "csv"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "result",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "band",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV or JSON export"
+          }
+        }
+      }
+    },
+    "/scenario/load": {
+      "post": {
+        "tags": [
+          "scenario"
+        ],
+        "summary": "Load Scenario",
+        "operationId": "load_scenario_scenario_load_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scenario"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/scenario/list": {
+      "get": {
+        "tags": [
+          "scenario"
+        ],
+        "summary": "List Available Scenarios",
+        "operationId": "list_scenarios_scenario_list_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Scenario"
+                  },
+                  "type": "array",
+                  "title": "Response List Scenarios"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scenario/start": {
+      "post": {
+        "tags": [
+          "scenario"
+        ],
+        "summary": "Start Scenario",
+        "operationId": "start_scenario_scenario_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/scenario/pause": {
+      "post": {
+        "tags": [
+          "scenario"
+        ],
+        "summary": "Pause Scenario",
+        "operationId": "pause_scenario_scenario_pause_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/scenario/reset": {
+      "post": {
+        "tags": [
+          "scenario"
+        ],
+        "summary": "Reset Scenario",
+        "operationId": "reset_scenario_scenario_reset_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Issue pilot JWT",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bearer token and role"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "503": {
+            "description": "Authentication is not configured"
+          }
+        }
+      }
+    },
+    "/research/baselines": {
+      "post": {
+        "tags": [
+          "research"
+        ],
+        "summary": "Run research baseline comparison",
+        "operationId": "run_baselines_research_baselines_post",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Baseline comparison"
+          },
+          "403": {
+            "description": "Researcher role required"
+          }
+        }
+      }
+    },
+    "/research/ground-truth": {
+      "get": {
+        "tags": [
+          "research"
+        ],
+        "summary": "Read synthetic evaluation reference",
+        "operationId": "get_ground_truth_research_ground_truth_get",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synthetic reference overlay"
+          },
+          "403": {
+            "description": "Researcher role required"
+          }
+        }
+      }
+    },
+    "/metrics/prometheus": {
+      "get": {
+        "tags": [
+          "metrics"
+        ],
+        "summary": "Prometheus Request Metrics",
+        "operationId": "prometheus_metrics_metrics_prometheus_get",
+        "responses": {
+          "200": {
+            "description": "Prometheus text format",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AlertEvent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "INFO",
+              "WARNING",
+              "CRITICAL"
+            ],
+            "title": "Severity"
+          },
+          "displayLabel": {
+            "type": "string",
+            "title": "Displaylabel"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "severity",
+          "displayLabel",
+          "active",
+          "timestamp"
+        ],
+        "title": "AlertEvent"
+      },
+      "Emitter": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "firstSeenTimestamp": {
+            "type": "string",
+            "title": "Firstseentimestamp"
+          },
+          "patternType": {
+            "type": "string",
+            "title": "Patterntype"
+          },
+          "centerFrequencyGHz": {
+            "type": "number",
+            "title": "Centerfrequencyghz"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "statusTone": {
+            "type": "string",
+            "enum": [
+              "green",
+              "teal",
+              "amber",
+              "quiet"
+            ],
+            "title": "Statustone"
+          },
+          "activityHistory": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Activityhistory"
+          },
+          "frequencyHistoryGHz": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Frequencyhistoryghz"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "priMs": {
+            "type": "number",
+            "title": "Prims"
+          },
+          "signalStrengthDbm": {
+            "type": "number",
+            "title": "Signalstrengthdbm"
+          },
+          "frequencyDeltaMHz": {
+            "type": "number",
+            "title": "Frequencydeltamhz"
+          },
+          "stabilityStatus": {
+            "type": "string",
+            "title": "Stabilitystatus"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "displayName",
+          "firstSeenTimestamp",
+          "patternType",
+          "centerFrequencyGHz",
+          "status",
+          "statusTone",
+          "activityHistory",
+          "frequencyHistoryGHz",
+          "confidence",
+          "priMs",
+          "signalStrengthDbm",
+          "frequencyDeltaMHz",
+          "stabilityStatus"
+        ],
+        "title": "Emitter"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ]
+          },
+          "modelCheckpoint": {
+            "type": "string",
+            "enum": [
+              "loaded",
+              "missing",
+              "failed"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "mode",
+          "version",
+          "database",
+          "modelCheckpoint"
+        ],
+        "title": "HealthResponse"
+      },
+      "OperationalMetrics": {
+        "properties": {
+          "receiverCapacity": {
+            "type": "integer",
+            "title": "Receivercapacity"
+          },
+          "trackedEmitterCount": {
+            "type": "integer",
+            "title": "Trackedemittercount"
+          },
+          "scanEfficiencyPercent": {
+            "type": "number",
+            "title": "Scanefficiencypercent"
+          },
+          "totalPdwCount": {
+            "type": "integer",
+            "title": "Totalpdwcount"
+          },
+          "pdwUpdateRateKHz": {
+            "type": "number",
+            "title": "Pdwupdateratekhz"
+          },
+          "meanReward": {
+            "type": "number",
+            "title": "Meanreward"
+          },
+          "hitRatePercent": {
+            "type": "number",
+            "title": "Hitratepercent"
+          },
+          "policyVersion": {
+            "type": "string",
+            "title": "Policyversion"
+          },
+          "evaluationSetSize": {
+            "type": "integer",
+            "title": "Evaluationsetsize"
+          },
+          "decisionCount": {
+            "type": "integer",
+            "title": "Decisioncount"
+          },
+          "newEmitterCount": {
+            "type": "integer",
+            "title": "Newemittercount"
+          },
+          "unclassifiedEmitterCount": {
+            "type": "integer",
+            "title": "Unclassifiedemittercount"
+          },
+          "scanEfficiencyDeltaPercent": {
+            "type": "number",
+            "title": "Scanefficiencydeltapercent"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "receiverCapacity",
+          "trackedEmitterCount",
+          "scanEfficiencyPercent",
+          "totalPdwCount",
+          "pdwUpdateRateKHz",
+          "meanReward",
+          "hitRatePercent",
+          "policyVersion",
+          "evaluationSetSize",
+          "decisionCount",
+          "newEmitterCount",
+          "unclassifiedEmitterCount",
+          "scanEfficiencyDeltaPercent"
+        ],
+        "title": "OperationalMetrics"
+      },
+      "PDW": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "emitterId": {
+            "type": "string",
+            "title": "Emitterid"
+          },
+          "centerFrequencyMHz": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centerfrequencymhz"
+          },
+          "centerFrequencyGHz": {
+            "type": "number",
+            "title": "Centerfrequencyghz"
+          },
+          "priMs": {
+            "type": "number",
+            "title": "Prims"
+          },
+          "pulseWidthUs": {
+            "type": "number",
+            "title": "Pulsewidthus"
+          },
+          "amplitudeDbm": {
+            "type": "number",
+            "title": "Amplitudedbm"
+          },
+          "amplitudePercent": {
+            "type": "number",
+            "title": "Amplitudepercent"
+          },
+          "classification": {
+            "type": "string",
+            "title": "Classification"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "HIT",
+              "MISS",
+              "REVIEW"
+            ],
+            "title": "Result"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "aoaDeg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aoadeg"
+          },
+          "scenarioLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenariolabel"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "timestamp",
+          "emitterId",
+          "centerFrequencyGHz",
+          "priMs",
+          "pulseWidthUs",
+          "amplitudeDbm",
+          "amplitudePercent",
+          "classification",
+          "result",
+          "confidence"
+        ],
+        "title": "PDW"
+      },
+      "PreviewBurst": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "title": "Y"
+          },
+          "width": {
+            "type": "number",
+            "title": "Width"
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "teal",
+              "amber"
+            ],
+            "title": "Tone"
+          },
+          "opacity": {
+            "type": "number",
+            "title": "Opacity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "width",
+          "tone",
+          "opacity"
+        ],
+        "title": "PreviewBurst"
+      },
+      "ReceiverState": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "currentFrequencyGHz": {
+            "type": "number",
+            "title": "Currentfrequencyghz"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SEARCH",
+              "TRACK",
+              "HOLD"
+            ],
+            "title": "Mode"
+          },
+          "dwellMs": {
+            "type": "number",
+            "title": "Dwellms"
+          },
+          "isRetuning": {
+            "type": "boolean",
+            "title": "Isretuning"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "currentFrequencyGHz",
+          "mode",
+          "dwellMs",
+          "isRetuning",
+          "active"
+        ],
+        "title": "ReceiverState"
+      },
+      "RewardComponents": {
+        "properties": {
+          "detectionBenefit": {
+            "type": "number",
+            "title": "Detectionbenefit"
+          },
+          "delayPenalty": {
+            "type": "number",
+            "title": "Delaypenalty"
+          },
+          "scanCost": {
+            "type": "number",
+            "title": "Scancost"
+          },
+          "missPenalty": {
+            "type": "number",
+            "title": "Misspenalty"
+          },
+          "stalenessPenalty": {
+            "type": "number",
+            "title": "Stalenesspenalty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "detectionBenefit",
+          "delayPenalty",
+          "scanCost",
+          "missPenalty",
+          "stalenessPenalty"
+        ],
+        "title": "RewardComponents"
+      },
+      "ScanDecision": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "band": {
+            "type": "string",
+            "title": "Band"
+          },
+          "bandId": {
+            "type": "string",
+            "title": "Bandid"
+          },
+          "frequencyGHz": {
+            "type": "number",
+            "title": "Frequencyghz"
+          },
+          "dwellMs": {
+            "type": "number",
+            "title": "Dwellms"
+          },
+          "predictedActivity": {
+            "type": "number",
+            "title": "Predictedactivity"
+          },
+          "uncertainty": {
+            "type": "number",
+            "title": "Uncertainty"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "HIT",
+              "MISS"
+            ],
+            "title": "Result"
+          },
+          "interceptionTimeMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interceptiontimems"
+          },
+          "beliefSnapshot": {
+            "$ref": "#/components/schemas/SchedulerState"
+          },
+          "rewardComponents": {
+            "$ref": "#/components/schemas/RewardComponents"
+          },
+          "reward": {
+            "type": "number",
+            "title": "Reward"
+          },
+          "before": {
+            "type": "string",
+            "title": "Before"
+          },
+          "outcome": {
+            "type": "string",
+            "title": "Outcome"
+          },
+          "policyMode": {
+            "type": "string",
+            "title": "Policymode",
+            "default": "DETERMINISTIC"
+          },
+          "policyVersion": {
+            "type": "string",
+            "title": "Policyversion",
+            "default": "belief-engine"
+          },
+          "policyConfidence": {
+            "type": "number",
+            "title": "Policyconfidence",
+            "default": 1.0
+          },
+          "policyLogProbability": {
+            "type": "number",
+            "title": "Policylogprobability",
+            "default": 0.0
+          },
+          "inferenceLatencyMs": {
+            "type": "number",
+            "title": "Inferencelatencyms",
+            "default": 0.0
+          },
+          "safetyOverride": {
+            "type": "boolean",
+            "title": "Safetyoverride",
+            "default": false
+          },
+          "fallbackReason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallbackreason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "timestamp",
+          "action",
+          "band",
+          "bandId",
+          "frequencyGHz",
+          "dwellMs",
+          "predictedActivity",
+          "uncertainty",
+          "result",
+          "beliefSnapshot",
+          "rewardComponents",
+          "reward",
+          "before",
+          "outcome"
+        ],
+        "title": "ScanDecision"
+      },
+      "Scenario": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "defaultEmitterCount": {
+            "type": "integer",
+            "title": "Defaultemittercount"
+          },
+          "defaultDurationSeconds": {
+            "type": "integer",
+            "title": "Defaultdurationseconds"
+          },
+          "defaultSeed": {
+            "type": "integer",
+            "title": "Defaultseed"
+          },
+          "previewBursts": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewBurst"
+            },
+            "type": "array",
+            "title": "Previewbursts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "defaultEmitterCount",
+          "defaultDurationSeconds",
+          "defaultSeed",
+          "previewBursts"
+        ],
+        "title": "Scenario"
+      },
+      "ScenarioConfig": {
+        "properties": {
+          "scenarioId": {
+            "type": "string",
+            "title": "Scenarioid"
+          },
+          "emitterCount": {
+            "type": "integer",
+            "title": "Emittercount"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "title": "Durationseconds"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenarioId",
+          "emitterCount",
+          "durationSeconds",
+          "seed"
+        ],
+        "title": "ScenarioConfig"
+      },
+      "SchedulerState": {
+        "properties": {
+          "bandId": {
+            "type": "string",
+            "title": "Bandid"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "band": {
+            "type": "string",
+            "title": "Band"
+          },
+          "frequencyStartGHz": {
+            "type": "number",
+            "title": "Frequencystartghz"
+          },
+          "frequencyEndGHz": {
+            "type": "number",
+            "title": "Frequencyendghz"
+          },
+          "activityPercent": {
+            "type": "number",
+            "title": "Activitypercent"
+          },
+          "uncertaintyPercent": {
+            "type": "number",
+            "title": "Uncertaintypercent"
+          },
+          "observationValue": {
+            "type": "number",
+            "title": "Observationvalue"
+          },
+          "dwellMs": {
+            "type": "number",
+            "title": "Dwellms"
+          },
+          "queueStatus": {
+            "type": "string",
+            "enum": [
+              "NEXT",
+              "QUEUED"
+            ],
+            "title": "Queuestatus"
+          },
+          "activityProbability": {
+            "type": "number",
+            "title": "Activityprobability"
+          },
+          "uncertainty": {
+            "type": "number",
+            "title": "Uncertainty"
+          },
+          "predictedActivity": {
+            "type": "number",
+            "title": "Predictedactivity"
+          },
+          "predictedActivityBoost": {
+            "type": "number",
+            "title": "Predictedactivityboost"
+          },
+          "stalenessFactor": {
+            "type": "number",
+            "title": "Stalenessfactor"
+          },
+          "changeLevelBoost": {
+            "type": "number",
+            "title": "Changelevelboost"
+          },
+          "scanCost": {
+            "type": "number",
+            "title": "Scancost"
+          },
+          "timeSinceLastScanMs": {
+            "type": "number",
+            "title": "Timesincelastscanms"
+          },
+          "recentHits": {
+            "type": "integer",
+            "title": "Recenthits"
+          },
+          "recentMisses": {
+            "type": "integer",
+            "title": "Recentmisses"
+          },
+          "lastObservedAtMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastobservedatms"
+          },
+          "lastHitTimeMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lasthittimems"
+          },
+          "averageInterArrivalMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Averageinterarrivalms"
+          },
+          "changeLevel": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "title": "Changelevel"
+          },
+          "changeLevelUntilMs": {
+            "type": "number",
+            "title": "Changeleveluntilms"
+          },
+          "coverageStatus": {
+            "type": "string",
+            "enum": [
+              "FRESH",
+              "STALE",
+              "VERY_STALE"
+            ],
+            "title": "Coveragestatus"
+          },
+          "observationHistory": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "HIT",
+                "MISS"
+              ]
+            },
+            "type": "array",
+            "title": "Observationhistory"
+          },
+          "hitTimesMs": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Hittimesms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "bandId",
+          "rank",
+          "band",
+          "frequencyStartGHz",
+          "frequencyEndGHz",
+          "activityPercent",
+          "uncertaintyPercent",
+          "observationValue",
+          "dwellMs",
+          "queueStatus",
+          "activityProbability",
+          "uncertainty",
+          "predictedActivity",
+          "predictedActivityBoost",
+          "stalenessFactor",
+          "changeLevelBoost",
+          "scanCost",
+          "timeSinceLastScanMs",
+          "recentHits",
+          "recentMisses",
+          "changeLevel",
+          "changeLevelUntilMs",
+          "coverageStatus",
+          "observationHistory",
+          "hitTimesMs"
+        ],
+        "title": "SchedulerState"
+      },
+      "SimulationState": {
+        "properties": {
+          "currentSimulationTime": {
+            "type": "string",
+            "title": "Currentsimulationtime"
+          },
+          "timeWindowSeconds": {
+            "type": "number",
+            "title": "Timewindowseconds"
+          },
+          "theaterDateLabel": {
+            "type": "string",
+            "title": "Theaterdatelabel"
+          },
+          "theaterName": {
+            "type": "string",
+            "title": "Theatername"
+          },
+          "operationId": {
+            "type": "string",
+            "title": "Operationid"
+          },
+          "receiverState": {
+            "$ref": "#/components/schemas/ReceiverState"
+          },
+          "receivers": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiverState"
+            },
+            "type": "array",
+            "title": "Receivers"
+          },
+          "bandBeliefs": {
+            "items": {
+              "$ref": "#/components/schemas/SchedulerState"
+            },
+            "type": "array",
+            "title": "Bandbeliefs"
+          },
+          "emitters": {
+            "items": {
+              "$ref": "#/components/schemas/Emitter"
+            },
+            "type": "array",
+            "title": "Emitters"
+          },
+          "pdws": {
+            "items": {
+              "$ref": "#/components/schemas/PDW"
+            },
+            "type": "array",
+            "title": "Pdws"
+          },
+          "pdwHistory": {
+            "items": {
+              "$ref": "#/components/schemas/PDW"
+            },
+            "type": "array",
+            "title": "Pdwhistory"
+          },
+          "scanDecisions": {
+            "items": {
+              "$ref": "#/components/schemas/ScanDecision"
+            },
+            "type": "array",
+            "title": "Scandecisions"
+          },
+          "decisionHistory": {
+            "items": {
+              "$ref": "#/components/schemas/ScanDecision"
+            },
+            "type": "array",
+            "title": "Decisionhistory"
+          },
+          "activeAlerts": {
+            "items": {
+              "$ref": "#/components/schemas/AlertEvent"
+            },
+            "type": "array",
+            "title": "Activealerts"
+          },
+          "simulationStatus": {
+            "type": "string",
+            "enum": [
+              "IDLE",
+              "RUNNING",
+              "PAUSED"
+            ],
+            "title": "Simulationstatus"
+          },
+          "simulationSpeed": {
+            "type": "number",
+            "title": "Simulationspeed"
+          },
+          "scenarioConfig": {
+            "$ref": "#/components/schemas/ScenarioConfig"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "currentSimulationTime",
+          "timeWindowSeconds",
+          "theaterDateLabel",
+          "theaterName",
+          "operationId",
+          "receiverState",
+          "receivers",
+          "bandBeliefs",
+          "emitters",
+          "pdws",
+          "pdwHistory",
+          "scanDecisions",
+          "decisionHistory",
+          "activeAlerts",
+          "simulationStatus",
+          "simulationSpeed",
+          "scenarioConfig"
+        ],
+        "title": "SimulationState"
+      },
+      "SpectrumSample": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "relativeTimeSeconds": {
+            "type": "number",
+            "title": "Relativetimeseconds"
+          },
+          "frequencyGHz": {
+            "type": "number",
+            "title": "Frequencyghz"
+          },
+          "durationMs": {
+            "type": "number",
+            "title": "Durationms"
+          },
+          "amplitude": {
+            "type": "number",
+            "title": "Amplitude"
+          },
+          "isPredicted": {
+            "type": "boolean",
+            "title": "Ispredicted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "relativeTimeSeconds",
+          "frequencyGHz",
+          "durationMs",
+          "amplitude",
+          "isPredicted"
+        ],
+        "title": "SpectrumSample"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

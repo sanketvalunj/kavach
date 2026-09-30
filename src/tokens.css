@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+:root {
+  color-scheme: dark;
+  --surface-0: #111619;
+  --surface-1: #192023;
+  --surface-2: rgba(37, 46, 49, .86);
+  --surface-3: rgba(48, 59, 62, .72);
+  --ink: #e4e9e7;
+  --muted: #879493;
+  --quiet: #5e6b6b;
+  --line: rgba(224, 238, 234, .095);
+  --line-soft: rgba(224, 238, 234, .055);
+  --teal: #75c9bf;
+  --teal-dim: #3c8d85;
+  --amber: #d5a56a;
+  --red: #c77e79;
+  --green: #89b59b;
+  --sans: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  --mono: 'DM Mono', 'SFMono-Regular', monospace;
+  --easing: cubic-bezier(.22, 1, .36, 1);
+  --shadow-panel: 0 1px 1px rgba(255,255,255,.035) inset, 0 14px 36px rgba(0,0,0,.2), 0 3px 8px rgba(0,0,0,.17);
+  --shadow-float: 0 1px 0 rgba(255,255,255,.06) inset, 0 24px 60px rgba(0,0,0,.28), 0 6px 16px rgba(0,0,0,.2);
+  --radius: 14px;
+}
