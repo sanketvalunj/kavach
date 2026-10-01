@@ -9,7 +9,6 @@ export const BELIEF_WEIGHTS = {
   scanCost: 0.12,
 } as const;
 
-const BAND_COUNT = 32;
 const HISTORY_LENGTH = 20;
 const TIMING_HISTORY_LENGTH = 8;
 const STALE_AFTER_MS = 8_000;
@@ -27,8 +26,11 @@ export interface BeliefUpdateResult {
 }
 
 export function createInitialBeliefs(minGHz: number, maxGHz: number): SchedulerState[] {
-  const widthGHz = (maxGHz - minGHz) / BAND_COUNT;
-  return Array.from({ length: BAND_COUNT }, (_, index) => {
+  // Keep scheduler bins no wider than the receiver's instantaneous passband,
+  // so a deterministic band-center tune cannot leave blind gaps between bins.
+  const bandCount = Math.max(1, Math.ceil((maxGHz - minGHz) / 0.24));
+  const widthGHz = (maxGHz - minGHz) / bandCount;
+  return Array.from({ length: bandCount }, (_, index) => {
     const start = minGHz + index * widthGHz;
     return createBand(index, start, Math.min(maxGHz, start + widthGHz));
   });
@@ -83,6 +85,8 @@ export function updateBeliefs(
   retunesInWindow: number,
   retuneBudget: number,
   observation?: BeliefObservation,
+  customOrder?: string[],
+  sortMode?: 'OBSERVATION_VALUE' | 'ACTIVITY' | 'UNCERTAINTY' | 'FREQUENCY' | 'DWELL' | 'MANUAL',
 ): BeliefUpdateResult {
   const observedId = observation?.bandId;
   const updated = previous.map((band) => updateBand(
@@ -95,10 +99,35 @@ export function updateBeliefs(
   const feasible = budgetExhausted
     ? []
     : updated.filter((band) => band.bandId !== currentBandId);
-  const ranked = [...updated].sort((left, right) => right.observationValue - left.observationValue);
-  const next = (feasible.sort((left, right) => right.observationValue - left.observationValue)[0]
+
+  let ranked = [...updated];
+  if (sortMode === 'ACTIVITY') {
+    ranked.sort((a, b) => b.activityPercent - a.activityPercent);
+  } else if (sortMode === 'UNCERTAINTY') {
+    ranked.sort((a, b) => b.uncertaintyPercent - a.uncertaintyPercent);
+  } else if (sortMode === 'FREQUENCY') {
+    ranked.sort((a, b) => a.frequencyStartGHz - b.frequencyStartGHz);
+  } else if (sortMode === 'DWELL') {
+    ranked.sort((a, b) => a.dwellMs - b.dwellMs);
+  } else if (sortMode === 'MANUAL' && customOrder && customOrder.length > 0) {
+    ranked.sort((a, b) => {
+      const idxA = customOrder.indexOf(a.bandId);
+      const idxB = customOrder.indexOf(b.bandId);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return b.observationValue - a.observationValue;
+    });
+  } else {
+    ranked.sort((left, right) => right.observationValue - left.observationValue);
+  }
+
+  const next = (feasible.sort((left, right) => {
+    return ranked.findIndex(r => r.bandId === left.bandId) - ranked.findIndex(r => r.bandId === right.bandId);
+  })[0]
     ?? updated.find((band) => band.bandId === currentBandId)
     ?? ranked[0]);
+
   const bands = ranked.map((band, rank) => ({
     ...band,
     rank: rank + 1,
@@ -130,15 +159,27 @@ function updateBand(
   const changeLevelBoost = changeLevel === 'HIGH' ? 1 : changeLevel === 'MEDIUM' ? 0.55 : 0;
   const resetTiming = changeMagnitude >= 0.3;
   const stableHitTimes = resetTiming ? (result === 'HIT' ? [nowMs] : []) : hitTimesMs;
-  const averageInterArrivalMs = calculateAverageInterval(stableHitTimes);
+  const intervalStats = calculateIntervalStats(stableHitTimes);
+  const averageInterArrivalMs = intervalStats ? intervalStats.mean : null;
+  const timingJitterCv = intervalStats ? intervalStats.cv : 0;
   const predictedWindow = averageInterArrivalMs !== null && stableHitTimes.length >= 2
     ? stableHitTimes[stableHitTimes.length - 1] + averageInterArrivalMs
     : null;
-  const predictedActivityBoost = predictedWindow !== null && averageInterArrivalMs !== null && Math.abs(predictedWindow - nowMs) <= Math.max(PREDICTION_WINDOW_MS, averageInterArrivalMs * 0.3)
-    ? Math.min(1 - activityProbability, 0.35)
+  // Directional/spatial scanning introduces cycle jitter, lowering prediction confidence compared to pure periodic transmitters
+  const jitterPenalty = timingJitterCv > 0.03 ? Math.max(0.35, 1 - timingJitterCv * 3.0) : 1.0;
+  const inWindow = predictedWindow !== null && averageInterArrivalMs !== null && Math.abs(predictedWindow - nowMs) <= Math.max(PREDICTION_WINDOW_MS, averageInterArrivalMs * 0.3);
+  const predictedActivityBoost = inWindow
+    ? Math.min(1 - activityProbability, 0.35 * jitterPenalty)
     : 0;
   const predictedActivity = Math.min(1, activityProbability + predictedActivityBoost);
-  const uncertainty = result ? Math.min(1, 0.12 + changeLevelBoost * 0.35) : Math.min(1, timeSinceLastScanMs / 12_000 + changeLevelBoost * 0.25);
+  // An unobserved region remains maximally uncertain until the receiver has
+  // actually dwelled there. Scanning-beam jitter also keeps residual uncertainty higher.
+  const jitterUncertainty = timingJitterCv > 0.03 ? Math.min(0.22, timingJitterCv * 1.1) : 0;
+  const uncertainty = result
+    ? Math.min(1, 0.12 + changeLevelBoost * 0.35 + jitterUncertainty)
+    : band.lastObservedAtMs === null
+      ? 1
+      : Math.min(1, timeSinceLastScanMs / 12_000 + changeLevelBoost * 0.25 + jitterUncertainty);
   const stalenessFactor = Math.min(1, timeSinceLastScanMs / 12_000);
   const coverageStatus: CoverageStatus = timeSinceLastScanMs >= VERY_STALE_AFTER_MS ? 'VERY_STALE' : timeSinceLastScanMs >= STALE_AFTER_MS ? 'STALE' : 'FRESH';
   const scanCost = Math.min(1, Math.abs((band.frequencyStartGHz + band.frequencyEndGHz) / 2 - receiverFrequencyGHz) / 8);
@@ -187,10 +228,19 @@ function compareWindows(history: Array<'HIT' | 'MISS'>): { recent: number; previ
   };
 }
 
-function calculateAverageInterval(hitTimesMs: number[]): number | null {
+function calculateIntervalStats(hitTimesMs: number[]): { mean: number; cv: number } | null {
   if (hitTimesMs.length < 2) return null;
   const intervals = hitTimesMs.slice(1).map((time, index) => time - hitTimesMs[index]);
-  return intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+  const mean = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+  if (intervals.length < 2) return { mean, cv: 0 };
+  const variance = intervals.reduce((sum, interval) => sum + (interval - mean) ** 2, 0) / intervals.length;
+  const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+  return { mean, cv };
+}
+
+function calculateAverageInterval(hitTimesMs: number[]): number | null {
+  const stats = calculateIntervalStats(hitTimesMs);
+  return stats ? stats.mean : null;
 }
 
 function makeRecommendation(band: SchedulerState, ranked: SchedulerState[], budgetExhausted: boolean): ScanRecommendation {
@@ -222,6 +272,47 @@ function makeRecommendation(band: SchedulerState, ranked: SchedulerState[], budg
     dwellMs: band.dwellMs,
     basis: neighbor ? `${band.coverageStatus} · ${band.changeLevel} change · ${band.recentHits}H/${band.recentMisses}M` : 'Scheduler belief',
     explanation,
+  };
+}
+
+/** Shared belief-only explanation used by recommendation and comparison UI. */
+export function explainBandState(band: SchedulerState): string {
+  return makeRecommendation(band, [band], false).explanation;
+}
+
+export function decomposeBandScore(band: SchedulerState) {
+  const activityWeight = BELIEF_WEIGHTS.activityProbability;
+  const timingWeight = BELIEF_WEIGHTS.predictedActivityBoost;
+  const uncertaintyWeight = BELIEF_WEIGHTS.uncertainty;
+  const stalenessWeight = BELIEF_WEIGHTS.stalenessFactor;
+  const changeWeight = BELIEF_WEIGHTS.changeLevelBoost;
+  const costWeight = BELIEF_WEIGHTS.scanCost;
+
+  const activityTerm = Math.round(activityWeight * band.activityProbability * 100);
+  const timingTerm = Math.round(timingWeight * band.predictedActivityBoost * 100);
+  const uncertaintyTerm = Math.round(uncertaintyWeight * band.uncertainty * 100);
+  const stalenessTerm = Math.round(stalenessWeight * band.stalenessFactor * 100);
+  const changeTerm = Math.round(changeWeight * band.changeLevelBoost * 100);
+  const costTerm = Math.round(costWeight * band.scanCost * 100);
+
+  const factors = [
+    { key: 'timing', label: 'Periodic / Scan Timing', score: timingTerm, weightPct: Math.round(timingWeight * 100), raw: band.predictedActivityBoost, desc: 'Temporal window alignment with emitter duty / directional scan cycle' },
+    { key: 'activity', label: 'Threat Activity', score: activityTerm, weightPct: Math.round(activityWeight * 100), raw: band.activityProbability, desc: 'Recent observed emitter pulse train energy' },
+    { key: 'change', label: 'Change Recovery', score: changeTerm, weightPct: Math.round(changeWeight * 100), raw: band.changeLevelBoost, desc: `${band.changeLevel} agile frequency shift or new emitter emergence` },
+    { key: 'staleness', label: 'Staleness Refresh', score: stalenessTerm, weightPct: Math.round(stalenessWeight * 100), raw: band.stalenessFactor, desc: 'Elapsed time since receiver last monitored this band' },
+    { key: 'uncertainty', label: 'Uncertainty Reduction', score: uncertaintyTerm, weightPct: Math.round(uncertaintyWeight * 100), raw: band.uncertainty, desc: 'Reconnaissance value of uncharacterized RF space' },
+  ].sort((a, b) => b.score - a.score);
+
+  return {
+    activityTerm,
+    timingTerm,
+    uncertaintyTerm,
+    stalenessTerm,
+    changeTerm,
+    costTerm,
+    totalObservationValue: band.observationValue,
+    factors,
+    dominantFactor: factors[0],
   };
 }
 

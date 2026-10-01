@@ -2,18 +2,18 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: aegis
-      POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegis
+      POSTGRES_DB: kavach
+      POSTGRES_USER: kavach
+      POSTGRES_PASSWORD: kavach
     ports:
       - "5432:5432"
     volumes:
-      - aegis-postgres:/var/lib/postgresql/data
+      - kavach-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis"]
+      test: ["CMD-SHELL", "pg_isready -U kavach -d kavach"]
       interval: 5s
       timeout: 3s
       retries: 10
 
 volumes:
-  aegis-postgres:
+  kavach-postgres:

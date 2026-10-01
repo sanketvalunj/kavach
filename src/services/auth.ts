@@ -1,6 +1,6 @@
 export type UserRole = 'OPERATOR' | 'RESEARCHER';
 export interface AuthSession { accessToken: string; username: string; role: UserRole }
-const storageKey = 'aegis-auth-session-v1';
+const storageKey = 'kavach-auth-session-v1';
 export function getAuthSession(): AuthSession | null {
   try { const raw = sessionStorage.getItem(storageKey); return raw ? JSON.parse(raw) as AuthSession : null; } catch { return null; }
 }

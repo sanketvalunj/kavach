@@ -31,6 +31,9 @@ export interface EmitterSeed {
   amplitudeDbm?: number;
   priMs?: number;
   aoaDeg?: number;
+  scanPeriodMs?: number;
+  illuminationWindowMs?: number;
+  scanJitterMs?: number;
 }
 
 export function createEmitterStates(seeds: EmitterSeed[]): GroundTruthEmitter[] {
@@ -46,6 +49,9 @@ export function createEmitterStates(seeds: EmitterSeed[]): GroundTruthEmitter[] 
     hopIntervalMs: seed.hopIntervalMs ?? 800,
     periodMs: seed.periodMs ?? 1500,
     activeDurationMs: seed.activeDurationMs ?? 200,
+    scanPeriodMs: seed.scanPeriodMs ?? 2500,
+    illuminationWindowMs: seed.illuminationWindowMs ?? 200,
+    scanJitterMs: seed.scanJitterMs ?? 40,
     intermittencyProbability: seed.intermittencyProbability ?? 0.45,
     changeAtMs: seed.changeAtMs ?? 45_000,
     changedFrequencyGHz: seed.changedFrequencyGHz ?? seed.actualFrequencyGHz + 0.025,
@@ -78,6 +84,15 @@ export function updateEmitterStates(
       case 'PERIODIC':
         active = exists && phaseMs % emitter.periodMs < emitter.activeDurationMs;
         break;
+      case 'SCANNING_BEAM': {
+        const period = emitter.scanPeriodMs ?? 2500;
+        const window = emitter.illuminationWindowMs ?? 200;
+        const jitter = (random01(random) - 0.5) * (emitter.scanJitterMs ?? 40);
+        const effectivePhase = ((phaseMs + jitter) % period + period) % period;
+        active = exists && effectivePhase < window;
+        frequencyGHz += (random01(random) - 0.5) * 0.00006;
+        break;
+      }
       case 'INTERMITTENT':
         active = exists && random01(random) < emitter.intermittencyProbability;
         break;
@@ -123,9 +138,9 @@ export function makePdw({ timeMs, emitter, random, tickNumber }: PdwObservation)
     amplitudeDbm,
     amplitudePercent: Math.max(0, Math.min(100, Math.round(100 + amplitudeDbm))),
     aoaDeg: (emitter.aoaDeg + (random01(random) - 0.5) * 2 + 360) % 360,
-    classification: emitter.pattern === 'FREQUENCY_AGILE' ? 'FREQUENCY HOP' : emitter.pattern === 'PERIODIC' ? 'PULSE TRAIN' : emitter.pattern === 'INTERMITTENT' ? 'INTERMITTENT' : 'PULSE TRAIN',
+    classification: emitter.pattern === 'SCANNING_BEAM' ? 'SCANNING BEAM' : emitter.pattern === 'FREQUENCY_AGILE' ? 'FREQUENCY HOP' : emitter.pattern === 'PERIODIC' ? 'PULSE TRAIN' : emitter.pattern === 'INTERMITTENT' ? 'INTERMITTENT' : 'PULSE TRAIN',
     result: 'HIT',
-    confidence: 0.72 + random01(random) * 0.25,
+    confidence: emitter.pattern === 'SCANNING_BEAM' ? 0.64 + random01(random) * 0.22 : 0.72 + random01(random) * 0.25,
   };
 }
 

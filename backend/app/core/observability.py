@@ -20,15 +20,15 @@ class RequestMetrics:
             counts = list(self._counts.items())
             sums = dict(self._latency_sum)
             maximums = dict(self._latency_max)
-        lines = ["# HELP aegis_http_requests_total Total HTTP requests.", "# TYPE aegis_http_requests_total counter"]
+        lines = ["# HELP kavach_http_requests_total Total HTTP requests.", "# TYPE kavach_http_requests_total counter"]
         for (method, route, status), count in counts:
-            lines.append(f'aegis_http_requests_total{{method="{method}",route="{route}",status="{status}"}} {count}')
-        lines += ["# HELP aegis_http_request_duration_seconds_sum Cumulative HTTP request duration.", "# TYPE aegis_http_request_duration_seconds_sum counter"]
+            lines.append(f'kavach_http_requests_total{{method="{method}",route="{route}",status="{status}"}} {count}')
+        lines += ["# HELP kavach_http_request_duration_seconds_sum Cumulative HTTP request duration.", "# TYPE kavach_http_request_duration_seconds_sum counter"]
         for route, value in sums.items():
-            lines.append(f'aegis_http_request_duration_seconds_sum{{route="{route}"}} {value:.6f}')
-        lines += ["# HELP aegis_http_request_duration_seconds_max Maximum observed HTTP request duration.", "# TYPE aegis_http_request_duration_seconds_max gauge"]
+            lines.append(f'kavach_http_request_duration_seconds_sum{{route="{route}"}} {value:.6f}')
+        lines += ["# HELP kavach_http_request_duration_seconds_max Maximum observed HTTP request duration.", "# TYPE kavach_http_request_duration_seconds_max gauge"]
         for route, value in maximums.items():
-            lines.append(f'aegis_http_request_duration_seconds_max{{route="{route}"}} {value:.6f}')
+            lines.append(f'kavach_http_request_duration_seconds_max{{route="{route}"}} {value:.6f}')
         return "\n".join(lines) + "\n"
 
 

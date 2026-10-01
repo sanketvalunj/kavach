@@ -1,4 +1,4 @@
-# Aegis local deployment and smoke checks
+# Kavach local deployment and smoke checks
 
 ## One-command local stack
 
@@ -8,22 +8,22 @@ From the repository root, run:
 docker compose up --build
 ```
 
-The stack starts PostgreSQL, applies Alembic migrations in the backend container, launches FastAPI, and runs the Vite frontend dev server. Open `http://localhost:5173`; API docs are at `http://localhost:8000/docs`. Data is stored in the `aegis-postgres` named volume. `docker compose down` preserves it; `docker compose down -v` deletes it.
+The stack starts PostgreSQL, applies Alembic migrations in the backend container, launches FastAPI, and runs the Vite frontend dev server. Open `http://localhost:5173`; API docs are at `http://localhost:8000/docs`. Data is stored in the `kavach-postgres` named volume. `docker compose down` preserves it; `docker compose down -v` deletes it.
 
 Compose defaults are for a local-only demo and use visible development credentials. Override them in a root `.env` file before sharing a network or pilot deployment:
 
 ```dotenv
 POSTGRES_PASSWORD=replace-with-a-private-database-password
-AEGIS_JWT_SECRET=replace-with-at-least-32-random-bytes
-AEGIS_OPERATOR_USERNAME=operator
-AEGIS_OPERATOR_PASSWORD=replace-with-a-private-password
-AEGIS_RESEARCHER_USERNAME=researcher
-AEGIS_RESEARCHER_PASSWORD=replace-with-a-private-password
-AEGIS_BACKEND_MODE=SIMULATION
-AEGIS_POLICY_MODE=DETERMINISTIC
+KAVACH_JWT_SECRET=replace-with-at-least-32-random-bytes
+KAVACH_OPERATOR_USERNAME=operator
+KAVACH_OPERATOR_PASSWORD=replace-with-a-private-password
+KAVACH_RESEARCHER_USERNAME=researcher
+KAVACH_RESEARCHER_PASSWORD=replace-with-a-private-password
+KAVACH_BACKEND_MODE=SIMULATION
+KAVACH_POLICY_MODE=DETERMINISTIC
 ```
 
-Other backend settings include `AEGIS_DATABASE_URL`, `AEGIS_JWT_EXPIRATION_MINUTES`, `AEGIS_INFERENCE_TIMEOUT_SECONDS`, `AEGIS_POLICY_CHECKPOINT`, and `AEGIS_MODEL_DIR`. Compose configures the database URL for the internal `postgres` hostname. Keep `.env` out of source control.
+Other backend settings include `KAVACH_DATABASE_URL`, `KAVACH_JWT_EXPIRATION_MINUTES`, `KAVACH_INFERENCE_TIMEOUT_SECONDS`, `KAVACH_POLICY_CHECKPOINT`, and `KAVACH_MODEL_DIR`. Compose configures the database URL for the internal `postgres` hostname. Keep `.env` out of source control.
 
 ## Migrations
 
@@ -39,12 +39,12 @@ Schema revision and rollback guidance, plus SQLite migration checks, are in [bac
 
 ## Trained model checkpoint
 
-The default policy is deterministic. To use PPO, set `AEGIS_POLICY_MODE=TRAINED` and point `AEGIS_POLICY_CHECKPOINT` at a readable Stable-Baselines3 checkpoint inside the container. Existing checkpoints are copied into the backend image under `app/ml/checkpoints`. For an external checkpoint, place it under `./models`, mount that directory through `AEGIS_MODEL_DIR=./models`, and set the container path, for example:
+The default policy is deterministic. To use PPO, set `KAVACH_POLICY_MODE=TRAINED` and point `KAVACH_POLICY_CHECKPOINT` at a readable Stable-Baselines3 checkpoint inside the container. Existing checkpoints are copied into the backend image under `app/ml/checkpoints`. For an external checkpoint, place it under `./models`, mount that directory through `KAVACH_MODEL_DIR=./models`, and set the container path, for example:
 
 ```dotenv
-AEGIS_MODEL_DIR=./models
-AEGIS_POLICY_MODE=TRAINED
-AEGIS_POLICY_CHECKPOINT=/models/final.zip
+KAVACH_MODEL_DIR=./models
+KAVACH_POLICY_MODE=TRAINED
+KAVACH_POLICY_CHECKPOINT=/models/final.zip
 ```
 
 Rebuild/restart the backend after changing checkpoint files or policy settings. `/health` reports `modelCheckpoint` as `loaded`, `missing`, or `failed`. In trained mode, an unavailable checkpoint makes health `degraded`; inference requests still use the deterministic belief engine and expose the fallback reason in decision metadata and Research Mode.
@@ -53,7 +53,7 @@ Rebuild/restart the backend after changing checkpoint files or policy settings. 
 
 Use the frontend **Data Source** selector to switch between `OFFLINE SIMULATION` and `LIVE BACKEND`. Offline mode runs the browser simulation. Live mode fetches the backend state/scenario catalog and receives WebSocket deltas; choose **TSRD pulse train replay** in Scenario Lab to replay the checked-in pulse export.
 
-`AEGIS_BACKEND_MODE` selects the server integration label (`SIMULATION`, `DATASET_REPLAY`, or reserved `LIVE`). The `LIVE` hardware mode is not implemented and does not connect to receiver hardware. This switch is separate from the frontend Data Source selector.
+`KAVACH_BACKEND_MODE` selects the server integration label (`SIMULATION`, `DATASET_REPLAY`, or reserved `LIVE`). The `LIVE` hardware mode is not implemented and does not connect to receiver hardware. This switch is separate from the frontend Data Source selector.
 
 ## Monitoring
 

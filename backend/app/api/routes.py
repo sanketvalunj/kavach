@@ -72,7 +72,7 @@ def export_history(format: str = "csv", run_id: str | None = None, result: str |
         rows.extend(repository.query_history(500, offset, run_id, result, band)["items"])
         offset = len(rows)
     if format.lower() == "json":
-        return Response(json.dumps(rows, indent=2), media_type="application/json", headers={"Content-Disposition": "attachment; filename=aegis-decision-history.json"})
+        return Response(json.dumps(rows, indent=2), media_type="application/json", headers={"Content-Disposition": "attachment; filename=kavach-decision-history.json"})
     if format.lower() != "csv":
         return Response(json.dumps({"detail": "format must be csv or json"}), status_code=422, media_type="application/json")
     output = io.StringIO()
@@ -80,7 +80,7 @@ def export_history(format: str = "csv", run_id: str | None = None, result: str |
     writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
     writer.writeheader()
     writer.writerows(rows)
-    return Response(output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=aegis-decision-history.csv"})
+    return Response(output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=kavach-decision-history.csv"})
 
 
 @router.get("/scenario/list", response_model=list[Scenario], tags=["scenario"])
@@ -121,6 +121,18 @@ def run_baselines(_: User = Depends(require_researcher)) -> dict:
 @router.get("/research/ground-truth", tags=["research"])
 def get_ground_truth(_: User = Depends(require_researcher)) -> dict:
     return simulation_service.get_research_ground_truth()
+
+
+@router.get("/research/ppo-evaluation", tags=["research"])
+def get_ppo_evaluation() -> dict:
+    for candidate in (
+        Path("data/reports/ablation_results.json"),
+        Path("backend/data/reports/ablation_results.json"),
+        Path(__file__).resolve().parents[2] / "data" / "reports" / "ablation_results.json",
+    ):
+        if candidate.exists():
+            return json.loads(candidate.read_text())
+    return {"status": "unavailable"}
 
 
 @router.websocket("/ws/stream")

@@ -11,7 +11,7 @@ ALEMBIC_CONFIG = Path(__file__).resolve().parents[1] / "alembic.ini"
 
 def test_initial_migration_upgrade_and_rollback(tmp_path, monkeypatch) -> None:
     database_file = tmp_path / "migration-test.db"
-    monkeypatch.setenv("AEGIS_DATABASE_URL", f"sqlite:///{database_file}")
+    monkeypatch.setenv("KAVACH_DATABASE_URL", f"sqlite:///{database_file}")
     config = Config(str(ALEMBIC_CONFIG))
     command.upgrade(config, "head")
     engine = create_engine(f"sqlite:///{database_file}")
@@ -24,7 +24,7 @@ def test_initial_migration_upgrade_and_rollback(tmp_path, monkeypatch) -> None:
 
 def test_decision_history_survives_database_engine_restart(tmp_path, monkeypatch) -> None:
     database_file = tmp_path / "persistence-test.db"
-    monkeypatch.setenv("AEGIS_DATABASE_URL", f"sqlite:///{database_file}")
+    monkeypatch.setenv("KAVACH_DATABASE_URL", f"sqlite:///{database_file}")
     config = Config(str(ALEMBIC_CONFIG))
     command.upgrade(config, "head")
     get_session_factory.cache_clear()
@@ -39,7 +39,7 @@ def test_decision_history_survives_database_engine_restart(tmp_path, monkeypatch
 
 def test_scenario_run_model_and_audit_crud(tmp_path, monkeypatch) -> None:
     database_file = tmp_path / "crud-test.db"
-    monkeypatch.setenv("AEGIS_DATABASE_URL", f"sqlite:///{database_file}")
+    monkeypatch.setenv("KAVACH_DATABASE_URL", f"sqlite:///{database_file}")
     command.upgrade(Config(str(ALEMBIC_CONFIG)), "head")
     get_session_factory.cache_clear()
     config = {"scenarioId": "crud-scenario", "emitterCount": 2, "durationSeconds": 60, "seed": 17}

@@ -5,7 +5,7 @@ export type ScanQueueStatus = 'NEXT' | 'QUEUED';
 export type ChangeLevel = 'NONE' | 'MEDIUM' | 'HIGH';
 export type CoverageStatus = 'FRESH' | 'STALE' | 'VERY_STALE';
 export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
-export type EmitterPattern = 'STABLE' | 'PERIODIC' | 'INTERMITTENT' | 'FREQUENCY_AGILE' | 'CHANGING' | 'NEW';
+export type EmitterPattern = 'STABLE' | 'PERIODIC' | 'INTERMITTENT' | 'FREQUENCY_AGILE' | 'CHANGING' | 'NEW' | 'SCANNING_BEAM';
 export type ReceiverPhase = 'RETUNING' | 'DWELLING' | 'BUDGET_WAIT';
 
 export interface PDW {
@@ -122,6 +122,9 @@ export interface GroundTruthEmitter {
   amplitudeDbm: number;
   priMs: number;
   aoaDeg: number;
+  scanPeriodMs?: number;
+  illuminationWindowMs?: number;
+  scanJitterMs?: number;
   active: boolean;
   activeSinceMs: number | null;
   currentFrequencyGHz: number;
@@ -136,6 +139,9 @@ export interface ReceiverModelState {
   retuneWindowStartMs: number;
   completedDwells: number;
   pendingHit: GroundTruthEmitter | null;
+  retuneStartFrequencyGHz?: number;
+  retuneTargetFrequencyGHz?: number;
+  manualOverride?: boolean;
 }
 
 export interface Scenario {
@@ -239,6 +245,8 @@ export interface OperationalMetrics {
   newEmitterCount: number;
   unclassifiedEmitterCount: number;
   scanEfficiencyDeltaPercent: number;
+  percentageOfCorrectPredictions: number;
+  averageInterceptTimeErrorMs: number;
 }
 
 export interface ReceiverConstraints {
@@ -321,4 +329,7 @@ export interface SimulationState {
   operationalMetrics: OperationalMetrics;
   researchSnapshot: ResearchSnapshot;
   isSeeded: boolean;
+  queueSortMode?: 'OBSERVATION_VALUE' | 'ACTIVITY' | 'UNCERTAINTY' | 'FREQUENCY' | 'DWELL' | 'MANUAL';
+  manualQueueOrder?: string[];
+  planCommitted?: boolean;
 }

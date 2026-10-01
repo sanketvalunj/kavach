@@ -7,7 +7,7 @@ from app.db.models import Base
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-config.set_main_option("sqlalchemy.url", os.getenv("AEGIS_DATABASE_URL", config.get_main_option("sqlalchemy.url")))
+config.set_main_option("sqlalchemy.url", os.getenv("KAVACH_DATABASE_URL", config.get_main_option("sqlalchemy.url")))
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:

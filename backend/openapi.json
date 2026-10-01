@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Aegis EW Command Backend",
-    "description": "Versioned backend contract for the hybrid Aegis EW Command application.",
+    "title": "Kavach EW Command Backend",
+    "description": "Versioned backend contract for the hybrid Kavach EW Command application.",
     "version": "0.1.0"
   },
   "paths": {

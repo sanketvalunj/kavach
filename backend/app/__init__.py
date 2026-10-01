@@ -1,1 +1,1 @@
-"""Aegis backend application package."""
+"""Kavach backend application package."""

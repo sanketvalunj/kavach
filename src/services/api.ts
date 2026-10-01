@@ -5,7 +5,7 @@ const baseUrl = (import.meta as ImportMeta & { env?: Record<string, string> }).e
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getAccessToken();
   const response = await fetch(`${baseUrl}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } });
-  if (!response.ok) throw new Error(`Aegis API ${path}: ${response.status} ${response.statusText}`);
+  if (!response.ok) throw new Error(`Kavach API ${path}: ${response.status} ${response.statusText}`);
   return response.json() as Promise<T>;
 }
 export async function login(username: string, password: string): Promise<{ username: string; role: UserRole; expires_in: number }> {

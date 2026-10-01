@@ -1,6 +1,6 @@
 # Visible Data Classification
 
-This table classifies fields visible in the AEGIS EW Command interface. `RAW` means a directly displayed observation or configuration value in the simulated data contract; it does not mean a live hardware feed. `DERIVED` means computed from observations by the belief engine, baseline evaluator, or operator clustering heuristic. `SIMULATED` means scenario ground truth or scripted engine data used for behavior and evaluation and never shown directly in Operator Mode.
+This table classifies fields visible in the KAVACH EW Command interface. `RAW` means a directly displayed observation or configuration value in the simulated data contract; it does not mean a live hardware feed. `DERIVED` means computed from observations by the belief engine, baseline evaluator, or operator clustering heuristic. `SIMULATED` means scenario ground truth or scripted engine data used for behavior and evaluation and never shown directly in Operator Mode.
 
 | App surface | Visible field | Classification | Source or meaning |
 |---|---|---|---|

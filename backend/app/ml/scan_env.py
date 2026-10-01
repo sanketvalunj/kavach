@@ -43,6 +43,11 @@ class ScanSchedulingEnv(gym.Env[np.ndarray, int]):
         self._band_coverage = np.ones(BAND_COUNT, dtype=np.float32)
         self._successes = np.ones(BAND_COUNT, dtype=np.float32)
         self._failures = np.ones(BAND_COUNT, dtype=np.float32)
+        # PS explicit requirement: Spatially Scanning Emitter / Periodic Scan Receiver
+        self.scanning_beam_bands = [38, 14]
+        self.scanning_beam_periods = {38: 12, 14: 16}
+        self.scanning_beam_windows = {38: 2, 14: 2}
+        self.scanning_beam_offsets = {38: 0, 14: 4}
 
     def reset(self, *, seed: int | None = None, options: dict | None = None) -> tuple[np.ndarray, dict]:
         super().reset(seed=seed)
@@ -65,14 +70,50 @@ class ScanSchedulingEnv(gym.Env[np.ndarray, int]):
         self._band_coverage.fill(1)
         self._successes.fill(1)
         self._failures.fill(1)
+        # Randomize initial beam scan angles per episode
+        self.scanning_beam_offsets = {
+            38: int(self._rng.integers(0, self.scanning_beam_periods[38])),
+            14: int(self._rng.integers(0, self.scanning_beam_periods[14])),
+        }
         self._load_replay_features()
         return self._observation(), {"cursor": self._cursor}
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
         action = int(action)
         row = self.rows.iloc[self._cursor]
-        target_band = _action_band(row["action"])
-        hit = action == target_band
+        replay_target_band = _action_band(row["action"])
+        
+        # Check spatially scanning beam illumination at the current step
+        # A scanning beam illuminates the receiver only during its recurring rotational window
+        scanning_active = {}
+        for sb_band, period in self.scanning_beam_periods.items():
+            win = self.scanning_beam_windows[sb_band]
+            offset = self.scanning_beam_offsets[sb_band]
+            jitter = float(self._rng.normal(0, 0.4))
+            phase = int((self._steps - offset + jitter) % period)
+            scanning_active[sb_band] = (0 <= phase < win)
+
+        target_band = replay_target_band
+        target_class = "PERIODIC" if not bool(row["frequency_hop_detected"]) else "FREQUENCY_AGILE"
+        is_sb = False
+
+        if action in scanning_active and scanning_active[action]:
+            hit = True
+            target_band = action
+            target_class = "SCANNING_BEAM"
+            is_sb = True
+        elif action == replay_target_band:
+            hit = True
+        else:
+            hit = False
+            # If a scanning beam was illuminating, acknowledge that target in info
+            for sb_band, active in scanning_active.items():
+                if active:
+                    target_band = sb_band
+                    target_class = "SCANNING_BEAM"
+                    is_sb = True
+                    break
+
         reward = _reward_for_action(row, action, self._current_band, target_band, hit)
         self._successes[action] += float(hit)
         self._failures[action] += float(not hit)
@@ -85,29 +126,55 @@ class ScanSchedulingEnv(gym.Env[np.ndarray, int]):
         if not (terminated := self._cursor >= len(self.rows)):
             self._load_replay_features()
         truncated = self._steps >= self.max_episode_steps or self._remaining_budget == 0
+
+        # Named metrics: Percentage of Correct Predictions and Average Intercept Time Error
+        pred_conf = float(self._band_prediction[action])
+        high_conf = pred_conf >= 0.60
+        correct_pred = high_conf and hit
+        
+        # Intercept time error: |predicted time - actual intercept time|
+        actual_hit_time = float(row["time_since_last_hit"]) / 1000.0 if hit else None
+        predicted_time = 240.0 * (1.0 + (1.0 - pred_conf)) if pred_conf > 0 else 240.0
+        time_error = abs(predicted_time - actual_hit_time) if actual_hit_time is not None else None
+
         info = {
-            "target_band": target_band, "hit": hit, "time_slot": int(row["time_slot"]),
-            "interception_time_ms": float(row["time_since_last_hit"]) / 1000 if hit else None,
-            "recovery_time_ms": float(row["time_since_last_hit"]) / 1000 if bool(row["frequency_hop_detected"]) and hit else None,
+            "target_band": target_band,
+            "target_class": target_class,
+            "is_scanning_beam": is_sb,
+            "hit": hit,
+            "time_slot": int(row["time_slot"]),
+            "interception_time_ms": actual_hit_time,
+            "recovery_time_ms": float(row["time_since_last_hit"]) / 1000.0 if bool(row["frequency_hop_detected"]) and hit else None,
             "spectrum_staleness_ms": float(row["time_since_last_hit"]),
+            "high_conf_pred": high_conf,
+            "correct_pred": correct_pred,
+            "intercept_time_error_ms": time_error,
         }
         return self._observation(), float(reward), terminated, truncated, info
 
     def _load_replay_features(self) -> None:
         row = self.rows.iloc[self._cursor]
         target_band = _action_band(row["action"])
-        self._band_prediction[target_band] = float(np.clip(row["estimated_activity"], 0, 1)) if self.include_temporal else 0.0
-        self._band_change[target_band] = float(bool(row["frequency_hop_detected"])) if self.include_change else 0.0
+        self._band_prediction.fill(0.0)
+        self._band_change.fill(0.0)
+        if self.include_temporal:
+            self._band_prediction[target_band] = float(np.clip(row["estimated_activity"], 0, 1))
+            for sb_band, period in self.scanning_beam_periods.items():
+                offset = self.scanning_beam_offsets[sb_band]
+                phase = (self._steps - offset) % period
+                if phase in (0, 1):
+                    self._band_prediction[sb_band] = 0.75
+        if self.include_change:
+            self._band_change[target_band] = float(bool(row["frequency_hop_detected"]))
 
     def _update_beliefs(self, row: pd.Series, action: int, hit: bool) -> None:
         self._band_activity[action] = np.clip(0.82 * self._band_activity[action] + (0.18 if hit else 0), 0, 1)
         self._band_uncertainty[action] = 0.12 if hit else min(1, self._band_uncertainty[action] * 0.94)
         self._band_recency[action] = 1.0
-        self._band_prediction[action] = float(np.clip(row["estimated_activity"], 0, 1))
-        self._band_change[action] = float(bool(row["frequency_hop_detected"]))
         self._band_coverage[action] = 0.0
         self._band_recency = np.maximum(0, self._band_recency - 0.05)
         self._band_coverage = np.minimum(1, self._band_coverage + 0.02)
+        self._band_activity *= 0.98
 
     def _observation(self) -> np.ndarray:
         temporal_recency = self._band_recency if self.include_temporal else np.zeros_like(self._band_recency)

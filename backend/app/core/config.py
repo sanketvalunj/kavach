@@ -15,16 +15,16 @@ class PolicyMode(StrEnum):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="AEGIS_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_prefix="KAVACH_", env_file=".env", extra="ignore")
 
-    app_name: str = "Aegis EW Command Backend"
+    app_name: str = "Kavach EW Command Backend"
     app_version: str = "0.1.0"
     backend_mode: BackendMode = BackendMode.SIMULATION
     log_level: str = "INFO"
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     policy_mode: PolicyMode = PolicyMode.DETERMINISTIC
     policy_checkpoint: str = "app/ml/checkpoints/ppo_ablations/complete_smart_scan/final.zip"
-    database_url: str = "postgresql+psycopg://aegis:aegis@localhost:5432/aegis"
+    database_url: str = "postgresql+psycopg://kavach:kavach@localhost:5432/kavach"
     jwt_secret: str = ""
     jwt_expiration_minutes: int = 60
     operator_username: str = ""

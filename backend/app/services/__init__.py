@@ -1,1 +1,1 @@
-"""Business services for the Aegis backend."""
+"""Business services for the Kavach backend."""

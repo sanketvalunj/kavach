@@ -14,7 +14,8 @@ scikit-learn==1.6.0
 joblib==1.4.2
 gymnasium==1.0.0
 stable-baselines3==2.5.0
-tensorboard==2.19.0SQLAlchemy==2.0.36
+tensorboard==2.19.0
+SQLAlchemy==2.0.36
 alembic==1.14.0
-psycopg[binary]==3.2.3
+psycopg[binary]>=3.2.3
 PyJWT==2.10.1

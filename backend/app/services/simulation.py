@@ -58,7 +58,7 @@ class SimulationService:
         self.scenario_config = {"scenarioId": self.scenario_id, "emitterCount": 8, "durationSeconds": 300, "seed": 7419}
         self.policy_mode = settings.policy_mode
         self.inference = InferenceService(settings.policy_checkpoint)
-        self.inference_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="aegis-inference")
+        self.inference_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="kavach-inference")
         self.inference_latencies_ms: list[float] = []
         self.replay_rows: list[dict[str, str]] = []
         source_root = Path(__file__).resolve()
@@ -88,7 +88,7 @@ class SimulationService:
 
     async def start_clock(self) -> None:
         if self._clock_task is None or self._clock_task.done():
-            self._clock_task = asyncio.create_task(self._run_clock(), name="aegis-simulation-clock")
+            self._clock_task = asyncio.create_task(self._run_clock(), name="kavach-simulation-clock")
 
     async def stop_clock(self) -> None:
         task = self._clock_task

@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: aegis
-      POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis-local-only}
+      POSTGRES_DB: kavach
+      POSTGRES_USER: kavach
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kavach-local-only}
     ports:
       - "5432:5432"
     volumes:
-      - aegis-postgres:/var/lib/postgresql/data
+      - kavach-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis"]
+      test: ["CMD-SHELL", "pg_isready -U kavach -d kavach"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -20,20 +20,20 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      AEGIS_DATABASE_URL: postgresql+psycopg://aegis:${POSTGRES_PASSWORD:-aegis-local-only}@postgres:5432/aegis
-      AEGIS_JWT_SECRET: ${AEGIS_JWT_SECRET:-local-development-only-change-this-signing-secret-0123456789}
-      AEGIS_OPERATOR_USERNAME: ${AEGIS_OPERATOR_USERNAME:-operator}
-      AEGIS_OPERATOR_PASSWORD: ${AEGIS_OPERATOR_PASSWORD:-operator-local-only}
-      AEGIS_RESEARCHER_USERNAME: ${AEGIS_RESEARCHER_USERNAME:-researcher}
-      AEGIS_RESEARCHER_PASSWORD: ${AEGIS_RESEARCHER_PASSWORD:-researcher-local-only}
-      AEGIS_BACKEND_MODE: ${AEGIS_BACKEND_MODE:-SIMULATION}
-      AEGIS_POLICY_MODE: ${AEGIS_POLICY_MODE:-DETERMINISTIC}
-      AEGIS_POLICY_CHECKPOINT: ${AEGIS_POLICY_CHECKPOINT:-app/ml/checkpoints/ppo_ablations/complete_smart_scan/final.zip}
-      AEGIS_CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173"]'
+      KAVACH_DATABASE_URL: ${KAVACH_DATABASE_URL:-postgresql+psycopg://kavach:${POSTGRES_PASSWORD:-kavach-local-only}@postgres:5432/kavach}
+      KAVACH_JWT_SECRET: ${KAVACH_JWT_SECRET:-local-development-only-change-this-signing-secret-0123456789}
+      KAVACH_OPERATOR_USERNAME: ${KAVACH_OPERATOR_USERNAME:-operator}
+      KAVACH_OPERATOR_PASSWORD: ${KAVACH_OPERATOR_PASSWORD:-operator-local-only}
+      KAVACH_RESEARCHER_USERNAME: ${KAVACH_RESEARCHER_USERNAME:-researcher}
+      KAVACH_RESEARCHER_PASSWORD: ${KAVACH_RESEARCHER_PASSWORD:-researcher-local-only}
+      KAVACH_BACKEND_MODE: ${KAVACH_BACKEND_MODE:-SIMULATION}
+      KAVACH_POLICY_MODE: ${KAVACH_POLICY_MODE:-DETERMINISTIC}
+      KAVACH_POLICY_CHECKPOINT: ${KAVACH_POLICY_CHECKPOINT:-app/ml/checkpoints/ppo_ablations/complete_smart_scan/final.zip}
+      KAVACH_CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173"]'
     ports:
       - "8000:8000"
     volumes:
-      - ${AEGIS_MODEL_DIR:-./backend/app/ml/checkpoints}:/models:ro
+      - ${KAVACH_MODEL_DIR:-./backend/app/ml/checkpoints}:/models:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,5 +61,5 @@ services:
         condition: service_healthy
 
 volumes:
-  aegis-postgres:
+  kavach-postgres:
   frontend-node-modules:

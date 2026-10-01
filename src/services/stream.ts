@@ -14,7 +14,7 @@ export function connectStream(onMessage: (message: StreamMessage) => void, onSta
     try {
       const message = JSON.parse(String(event.data)) as StreamMessage;
       if (message.type === 'full_state' || message.type === 'tick_delta') onMessage(message);
-    } catch (error) { console.error('Invalid Aegis stream message', error); }
+    } catch (error) { console.error('Invalid Kavach stream message', error); }
   };
   return () => { if (socket.readyState < WebSocket.CLOSING) socket.close(); };
 }

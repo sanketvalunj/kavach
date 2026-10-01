@@ -27,7 +27,7 @@ def state() -> SimulationState:
     config = ScenarioConfig(scenarioId="adaptive-multi-emitter", emitterCount=8, durationSeconds=120, seed=7419)
     current_decision = decision()
     current_pdw = pdw()
-    return SimulationState(currentSimulationTime="04:11:52.084Z", timeWindowSeconds=10, theaterDateLabel="29 SEP 2026", theaterName="AEGIS TEST THEATER", operationId="OP-2026-0929-01", receiverState=receiver, receivers=[receiver], bandBeliefs=[band()], emitters=[emitter()], pdws=[current_pdw], pdwHistory=[current_pdw], scanDecisions=[current_decision], decisionHistory=[current_decision], activeAlerts=[AlertEvent(id="ALERT-041", title="Emitter change detected", description="E-041 center frequency shifted +12.4 MHz.", severity="WARNING", displayLabel="CHANGE HIGH", active=True, timestamp="04:11:52Z")], simulationStatus="PAUSED", simulationSpeed=1, scenarioConfig=config)
+    return SimulationState(currentSimulationTime="04:11:52.084Z", timeWindowSeconds=10, theaterDateLabel="29 SEP 2026", theaterName="KAVACH TEST THEATER", operationId="OP-2026-0929-01", receiverState=receiver, receivers=[receiver], bandBeliefs=[band()], emitters=[emitter()], pdws=[current_pdw], pdwHistory=[current_pdw], scanDecisions=[current_decision], decisionHistory=[current_decision], activeAlerts=[AlertEvent(id="ALERT-041", title="Emitter change detected", description="E-041 center frequency shifted +12.4 MHz.", severity="WARNING", displayLabel="CHANGE HIGH", active=True, timestamp="04:11:52Z")], simulationStatus="PAUSED", simulationSpeed=1, scenarioConfig=config)
 
 
 def metrics() -> OperationalMetrics:
