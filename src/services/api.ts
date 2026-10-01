@@ -1,7 +1,19 @@
 import type { AlertEvent, OperationalMetrics, PDW, ScanDecision, Scenario, ScenarioConfig, SchedulerState, SimulationState, SpectrumSample } from '../types';
 import { getAccessToken, saveAuthSession, type UserRole } from './auth';
 
-const baseUrl = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const envApiUrl = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_API_BASE_URL;
+export const getApiBaseUrl = (): string => {
+  if (envApiUrl) return envApiUrl.replace(/\/$/, '');
+  if (typeof window !== 'undefined') {
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isProd = Boolean((import.meta as ImportMeta & { env?: Record<string, string> }).env?.PROD);
+    if (!isLocalhost || isProd) {
+      return '/api';
+    }
+  }
+  return 'http://localhost:8000';
+};
+const baseUrl = getApiBaseUrl();
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getAccessToken();
   const response = await fetch(`${baseUrl}${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } });

@@ -14,6 +14,7 @@ from .api.routes import router
 app = FastAPI(title=settings.app_name, version=settings.app_version, description="Versioned backend contract for the hybrid Kavach EW Command application.")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(router)
+app.include_router(router, prefix="/api")
 
 logger = logging.getLogger("kavach.http")
 
