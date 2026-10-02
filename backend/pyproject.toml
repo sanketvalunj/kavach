@@ -1,3 +1,25 @@
+[project]
+name = "kavach-ew-backend"
+version = "1.0.0"
+description = "Kavach EW Command backend service"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.34.0",
+  "pydantic-settings==2.7.1",
+  "python-dotenv==1.0.1",
+  "httpx==0.28.1",
+  "pandas==2.2.3",
+  "pyarrow==18.1.0",
+  "numpy==2.2.1",
+  "scikit-learn==1.6.0",
+  "joblib==1.4.2",
+  "SQLAlchemy==2.0.36",
+  "alembic==1.14.0",
+  "psycopg[binary]>=3.2.3",
+  "PyJWT==2.10.1",
+]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 140
